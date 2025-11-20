@@ -104,6 +104,19 @@
     var cursorHidden = false;
     var cursorValidateTimer;
 
+    // Handle menu actions from main process
+    const { ipcRenderer } = require('electron');
+
+    // Listen for mute toggle from menu
+    ipcRenderer.on('toggle-mute', (event, isMuted) => {
+      console.log('Mute toggled:', isMuted);
+      if (isMuted) {
+        flowAudio.pauseAll();
+      } else {
+        flowAudio.resumeAll();
+      }
+    });
+
     // Page setup
     const pageSetup = function() {
       gameEl = document.getElementById('builder');

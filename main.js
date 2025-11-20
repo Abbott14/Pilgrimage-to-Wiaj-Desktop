@@ -1,5 +1,6 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, protocol } = require('electron');
 const path = require('path');
+const https = require('https');
 
 let mainWindow;
 
@@ -14,11 +15,16 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      // Disable web security to allow loading local resources
-      webSecurity: false
+      // Disable web security to allow CORS and mixed content
+      webSecurity: false,
+      // Allow running insecure content
+      allowRunningInsecureContent: true
     },
     icon: path.join(__dirname, 'assets/icons/icon.png')
   });
+
+  // Set user agent to avoid detection issues
+  mainWindow.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
   // Load the index.html of the app
   mainWindow.loadFile('src/renderer/index.html');

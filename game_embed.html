@@ -1,0 +1,191 @@
+<html>
+<head>
+  <title>
+  the new pilgrimage to wiaj
+  </title>
+  <script src="/javascripts/jquery-1.8.3.min.js"></script>
+  <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.21.2.js"></script>
+  <script src="/javascripts/rtc-pubnub.js"></script>
+  <script src="/javascripts/rtc-xirsys.js"></script>
+  <script src="/javascripts/flowAudio.js"></script>
+	<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+    <script type="text/javascript" src="https://releases.flowlab.io/5000.js"></script>
+	<script>
+		window.addEventListener ("touchmove", function (event) { event.preventDefault (); }, { capture: false, passive: false });
+		if (typeof window.devicePixelRatio != 'undefined' && window.devicePixelRatio > 2) {
+			var meta = document.getElementById ("viewport");
+			meta.setAttribute ('content', 'width=device-width, initial-scale=' + (2 / window.devicePixelRatio) + ', user-scalable=no');
+		}
+    // don't leave page on backspace
+    window.addEventListener('keydown',function(e){if(e.keyIdentifier=='U+0008'||e.keyIdentifier=='Backspace'||e.keyCode==8){if(e.target==document.body){e.preventDefault();return false;}}},true);
+
+    flowAudio = new FlowAudio();
+    var page_theme = {};
+    var favorited = false;
+    var gameEl;
+    
+    // on load
+    const pageSetup = function() {
+      gameEl = document.getElementById('builder');
+    }
+
+    if (document.readyState !== 'loading') {
+      pageSetup();
+    } else {
+      document.addEventListener('DOMContentLoaded', pageSetup);
+    }
+
+    // Haxe mockups for dealing with cross-compiled expressions
+    var Std = { 
+      string: function(str) { return str + ""; }
+    }
+
+    class HxOverrides {
+      static substr(s,pos,len) {
+        if(len == null) {
+          len = s.length;
+        } else if(len < 0) {
+          if(pos == 0) {
+            len = s.length + len;
+          } else {
+            return "";
+          }
+        }
+        return s.substr(pos,len);
+      }
+      static now() {
+        return Date.now();
+      }
+    }
+    function toggleCursor(showMouse) {
+      if (showMouse) {
+        console.log("[+] show mouse cursor");
+        cursorHidden = false;
+        validateCursorState();
+        removeCursorValidation();
+        document.getElementById("builder").style.cursor = 'auto'; 
+      } else {
+        console.log("[-] hide mouse cursor");
+        cursorHidden = true;
+        validateCursorState();
+        addCursorValidation();
+      }
+    }
+    function addCursorValidation() {
+      gameEl.addEventListener("mousedown", validateCursorState);
+      gameEl.addEventListener("mouseover", validateCursorState);
+      console.log("cursor validation: on");
+      cursorValidateTimer = setTimeout(validateCursorState, 1000);
+    }
+    function removeCursorValidation() {
+      gameEl.removeEventListener("mousedown", validateCursorState);
+      gameEl.removeEventListener("mouseover", validateCursorState);
+      console.log("cursor validation: off");
+      if (cursorValidateTimer) {
+        clearTimeout(cursorValidateTimer);
+      }
+    }
+    // various events can ruin our toggleCursor state - stage mouse events during
+    // loading, buttonMode sprites, etc
+    function validateCursorState() {
+      //console.log("cursor validate hidden:"+cursorHidden);
+      var b = document.getElementById('builder');
+      if (b && cursorHidden && b.style.cursor != 'none') {
+        b.style.cursor = 'none'; 
+        //console.log("cursor FIX**");
+      }
+    }
+	</script>
+	<style>
+		html,body { margin: 0; padding: 0; height: 100%; }
+		#openfl-content { background: #000000; width: 100%; height: 100%; }
+    @font-face {                                                                
+      font-family: 'D-DIN';                                                     
+      src: url('assets/D-DIN.eot?#iefix') format('embedded-opentype'),          
+      url('/html5/bin/assets/D-DIN.woff') format('woff'),                                  
+      url('/html5/bin/assets/D-DIN.ttf') format('truetype'),                               
+      url('/html5/bin/assets/D-DIN.svg#D-DIN') format('svg');                              
+      font-weight: normal;                                                      
+      font-style: normal;                                                       
+    }   
+    @font-face {
+      font-family: 'Whitney-Book';
+      src: url('/html5/bin/assets/Whitney-Book.eot');
+      src: url('/html5/bin/assets/Whitney-Book.eot?#iefix') format('embedded-opentype'),
+          url('/html5/bin/assets/Whitney-Book.woff2') format('woff2'),
+          url('/html5/bin/assets/Whitney-Book.woff') format('woff'),
+          url('/html5/bin/assets/Whitney-Book.svg#Whitney-Book') format('svg');
+      font-weight: 500;
+      font-style: normal;
+    }
+  html, body {
+    margin: 0;
+  }
+  #builder {
+    outline:none;
+    width: 384.0px;
+    height: 384.0px;
+  }
+  .center  {
+    margin:auto;
+    text-align:center;
+  }
+  #link {
+    font-family: Verdana, Helvetica, Sans-Serif;
+    font-size: 9px;
+    color: #999;
+  }
+  #message {
+    font-family: Verdana, Helvetica, Sans-Serif;
+    font-size:16px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+<div id="game" class="center">
+    <div id="builder" oncontextmenu="return false;" class="center"></div>
+    <!--
+      <div id="link">Built with Flowlab, the <a target="_blank" href="http://flowlab.io">online game maker.</a></div>
+    -->
+</div>
+<script type="text/javascript">
+  var rtcPubNub = new RtcPubNub();
+  var rtcXirsys = new RtcXirsys();
+  lime.embed ("Flowlab", "builder", 0, 0, { 
+    rootPath: "/html5/bin", 
+    parameters: { 
+      auth_token: "",
+      game: "2687779",
+      asset_root: 'assets2',
+      splash: "",
+      splash_bg: null,
+      splash_bar: null,
+      splash_logo: false,
+      splash_logo_x: null,
+      splash_logo_y: null,
+      uid: "",
+      mode: "embed",
+      chrome: !!window.chrome,
+      membership: "",
+      send_events: false,
+      viewW: "384.0",
+      viewH: "384.0"
+    }
+  });
+  window.addEventListener('keydown', function(e) {
+    // prevent space and arrow up/down from scrolling page
+    if((e.keyCode == 32 || e.keyCode == 38 || e.keyCode == 40)
+      && e.target == document.body) {
+      e.preventDefault();
+    }
+  });
+  // stub this out
+  function displayConnectionStatus(msg, state) {
+    console.log("connection status:"+msg+"/"+state);
+  }
+ </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a1b242e7d91ab46',t:'MTc2MzY3NTE5OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

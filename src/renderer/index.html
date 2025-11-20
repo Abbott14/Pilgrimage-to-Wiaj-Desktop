@@ -84,6 +84,15 @@
   <script src="../scripts/flowAudio.js"></script>
   <script src="../scripts/flowlab-engine-5000.js"></script>
 
+  <!-- Set base URL after local scripts load so game API calls resolve to flowlab.io -->
+  <script type="text/javascript">
+    // Add base tag to make relative URLs point to flowlab.io
+    var base = document.createElement('base');
+    base.href = 'https://flowlab.io/';
+    document.head.insertBefore(base, document.head.firstChild);
+    console.log("Base URL set to:", base.href);
+  </script>
+
   <script type="text/javascript">
     // Prevent touch scrolling
     window.addEventListener("touchmove", function (event) {

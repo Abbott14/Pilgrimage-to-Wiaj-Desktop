@@ -9,6 +9,7 @@
     html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
       height: 100%;
       background: #000000;
       overflow: hidden;
@@ -32,47 +33,25 @@
       font-style: normal;
     }
 
+    #game {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000000;
+    }
+
     #builder {
       outline: none;
-      width: 384px;
-      height: 384px;
-      margin: auto;
-    }
-
-    .center {
-      margin: auto;
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-
-    #game {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-
-    #link {
-      font-family: Verdana, Helvetica, Sans-Serif;
-      font-size: 9px;
-      color: #999;
-      margin-top: 10px;
-    }
-
-    #message {
-      font-family: Verdana, Helvetica, Sans-Serif;
-      font-size: 16px;
-      color: #999;
+      margin: 0;
+      /* Size will be set dynamically by JavaScript */
     }
   </style>
 </head>
 <body>
-  <div id="game" class="center">
-    <div id="builder" oncontextmenu="return false;" class="center"></div>
+  <div id="game">
+    <div id="builder" oncontextmenu="return false;"></div>
   </div>
 
   <!-- Load dependencies from local files -->
@@ -244,10 +223,69 @@
       console.log("connection status: " + msg + "/" + state);
     }
 
+    // Dynamic canvas resizing to fill window while maintaining aspect ratio
+    var gameTargetWidth = 384;
+    var gameTargetHeight = 384;
+    var gameAspectRatio = 1.0; // 384/384
+
+    function resizeCanvas() {
+      var gameEl = document.getElementById('builder');
+      if (!gameEl) return;
+
+      // Get the actual canvas element (OpenFL creates it)
+      var canvas = gameEl.querySelector('canvas');
+      if (!canvas) {
+        // Try again in 100ms if canvas isn't ready yet
+        setTimeout(resizeCanvas, 100);
+        return;
+      }
+
+      // Get window dimensions
+      var windowWidth = window.innerWidth;
+      var windowHeight = window.innerHeight;
+
+      // Calculate scaled dimensions that fit window while maintaining aspect ratio
+      var scale = Math.min(
+        windowWidth / gameTargetWidth,
+        windowHeight / gameTargetHeight
+      );
+
+      var newWidth = Math.floor(gameTargetWidth * scale);
+      var newHeight = Math.floor(gameTargetHeight * scale);
+
+      // Set the game element size
+      gameEl.style.width = newWidth + 'px';
+      gameEl.style.height = newHeight + 'px';
+
+      // Also set canvas size for crisp rendering
+      if (canvas) {
+        canvas.style.width = newWidth + 'px';
+        canvas.style.height = newHeight + 'px';
+      }
+
+      console.log("Canvas resized to: " + newWidth + "x" + newHeight + " (scale: " + scale.toFixed(2) + ")");
+    }
+
+    // Resize on window resize
+    window.addEventListener('resize', resizeCanvas);
+
+    // Initial resize after a short delay to let the game initialize
+    setTimeout(function() {
+      resizeCanvas();
+      // Keep trying for a few seconds in case the canvas takes time to create
+      var retries = 0;
+      var resizeInterval = setInterval(function() {
+        resizeCanvas();
+        retries++;
+        if (retries > 20) clearInterval(resizeInterval);
+      }, 200);
+    }, 500);
+
     // Log when game is ready
     console.log("Pilgrimage to Wiaj - Desktop Edition");
     console.log("Game initializing...");
     console.log("Note: Game assets load from flowlab.io (requires internet connection)");
+    console.log("Window will auto-resize to fill screen while maintaining aspect ratio");
   </script>
 </body>
 </html>
